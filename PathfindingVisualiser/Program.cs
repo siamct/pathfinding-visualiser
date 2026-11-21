@@ -10,8 +10,8 @@ namespace PathfindingVisualiser
         [STAThread]
         private static int Main(string[] args)
         {
-            // PathfindingVisualiser --export out.png astar terrain 11
-            // PathfindingVisualiser --stats terrain 11
+            // PathfindingVisualiser --export out.png astar terrain 2024
+            // PathfindingVisualiser --stats terrain 2024
             if (args.Length > 0 && args[0] == "--export") return Export(args);
             if (args.Length > 0 && args[0] == "--stats") return Stats(args);
 
@@ -23,7 +23,7 @@ namespace PathfindingVisualiser
 
         private static Map MakeMap(string kind, int seed)
         {
-            var map = new Map(41, 27);      // same as the default in the app
+            var map = new Map(81, 51);
             if (kind == "maze") MazeGenerator.Generate(map, seed);
             else TerrainGenerator.Generate(map, seed);
             return map;
@@ -62,7 +62,7 @@ namespace PathfindingVisualiser
         private static int Stats(string[] a)
         {
             string kind = a.Length > 1 ? a[1] : "terrain";
-            int seed = a.Length > 2 ? int.Parse(a[2]) : 11;
+            int seed = a.Length > 2 ? int.Parse(a[2]) : 2024;
             Console.WriteLine("| Algorithm | Cells visited | Path steps | Path cost |");
             Console.WriteLine("|---|---|---|---|");
             foreach (Algorithm alg in Enum.GetValues(typeof(Algorithm)))

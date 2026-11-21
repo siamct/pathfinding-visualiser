@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "LLOZmY0+Er3NfWHswanzIJi8Ml6wMNMjZtm4tYk9buTYo4z9yxXYohbr29N22MelZRWl9gxIhdXuNhPaUADaDg==",
+  "success": true,
+  "projectFilePath": "F:\\Documents\\!Myself\\projects\\pathfinding-visualiser\\PathfindingVisualiser\\PathfindingVisualiser.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Siam\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.1\\microsoft.netcore.app.ref.8.0.1.nupkg.sha512",
+    "C:\\Users\\Siam\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.1\\microsoft.windowsdesktop.app.ref.8.0.1.nupkg.sha512",
+    "C:\\Users\\Siam\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.1\\microsoft.aspnetcore.app.ref.8.0.1.nupkg.sha512",
+    "C:\\Users\\Siam\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\8.0.1\\microsoft.netcore.app.host.win-x64.8.0.1.nupkg.sha512"
+  ],
+  "logs": []
+}

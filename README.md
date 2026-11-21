@@ -6,16 +6,16 @@ A Windows Forms app (C#) that makes a map, either hilly terrain or a maze, and s
 
 ## Where it came from
 
-This started as an older project of mine that only got as far as the grid: a 20 × 20 board of `PictureBox`es with Draw and Erase buttons that coloured squares as the mouse went over them, a black border, and two number boxes for the size. It also had a bug I didn't spot at the time: `for (int lines = 0; lines < xDraw; lines=+2)` sets `lines` to 2 forever instead of adding 2, so it never finished drawing.
+This started as my A-level Computer Science NEA. That version (a separate repo, "NEA Grid") only got as far as the grid: a 20 × 20 board of `PictureBox`es with Draw and Erase buttons that coloured squares as the mouse went over them. There was a black border, two number boxes meant for the grid size, and that was it. It also had a bug I didn't spot at the time: `for (int lines = 0; lines < xDraw; lines=+2)` sets `lines` to 2 forever instead of adding 2, so it never finished drawing the grid.
 
-I came back to it and finished it. It still looks like the original (buttons and number boxes down the left, white squares and black walls on the blue form), but the grid is now drawn in one go instead of 400 separate controls, so it goes up to 151 × 101, and the searching, map generation and comparison are new.
+I came back to it and finished it properly. The ideas are the same (a grid you draw walls on, a border round the edge, the size set from two boxes), but the grid is now drawn in one go instead of 400 separate controls, so it copes with 151 × 101 without slowing down. The searching, map generation and the rest of the UI are new.
 
 ## What it does
 
 - **Makes maps.** Perlin-noise terrain where the height of each cell is how much it costs to walk over (1 on flat ground up to 9 on steep hills, with the highest points turned into rock you can't cross). Or a perfect maze from a recursive backtracker. Or an empty grid to draw on.
 - **Lets you edit them.** Draw and erase walls, raise and lower the ground, move the start and end. Brush size 1 to 5.
-- **Animates the search.** The shaded area is cells that have been checked and the orange line is the path. You can pause, step one cell at a time, or change the speed.
-- **Compares them.** "Run all six" runs every algorithm on the same map and shows cells visited and path cost side by side. Orange bars are the ones that found the cheapest path.
+- **Animates the search.** The blue area is cells that have been checked, the yellow edge is cells waiting to be checked, and the orange line is the path. You can pause, step one cell at a time, or change the speed.
+- **Compares them.** "Run all 6" runs every algorithm on the same map and shows cells visited and path cost side by side. The orange bars are the ones that found the cheapest path.
 - **Saves a picture** of the current map and search.
 
 ## The algorithms
@@ -33,22 +33,23 @@ Diagonal moves can be turned off. When they're on, a diagonal step costs 1.41 ti
 
 ## Results
 
-All six on the default 41 × 27 terrain (seed 11, diagonals on). "Cells visited" is how many cells each one had to check. "Path cost" adds up the hill cost of every cell on the path.
+All six on the same 81 × 51 terrain (seed 11, diagonals on). "Cells visited" is how many cells each one had to check. "Path cost" adds up the hill cost of every cell on the path.
 
 | Algorithm | Cells visited | Path steps | Path cost |
 |---|---|---|---|
-| A* | 255 | 40 | 54.2 |
-| Dijkstra | 657 | 40 | 54.2 |
-| Greedy best-first | 39 | 38 | 73.0 |
-| Breadth-first | 856 | 38 | 73.0 |
-| Bidirectional BFS | 789 | 38 | 73.0 |
-| Depth-first | 776 | 741 | 3,056.1 |
+| A* | 1,665 | 78 | 111.7 |
+| Dijkstra | 2,952 | 78 | 111.7 |
+| Greedy best-first | 80 | 78 | 166.4 |
+| Breadth-first | 3,508 | 78 | 161.9 |
+| Bidirectional BFS | 3,439 | 78 | 164.9 |
+| Depth-first | 3,481 | 3,210 | 13,767.7 |
 
-- A* and Dijkstra find the same cheapest route, but A* only checks 39 % as many cells.
-- Greedy is by far the quickest (39 cells), but like breadth-first it goes straight over the hills, so its path costs 35 % more even though it's 2 steps shorter.
+- A* and Dijkstra find the same cheapest route, but A* only checks 56 % as many cells.
+- Greedy is by far the quickest (80 cells), but its path costs about 50 % more, because it walks straight over the hills.
+- Breadth-first finds a path with the same number of steps, but it also goes over the hills, so it costs 45 % more.
 - Depth-first wanders round almost the whole map before it reaches the end.
 
-In a maze every open cell costs the same and there's only one route, so they all find the same path. The difference is how much of the maze they explore first (seed 7: greedy 149 cells, A* 275, Dijkstra 305).
+In a maze every open cell costs the same and there's only one route, so they all find the same path. The difference is how much of the maze they explore first (seed 7: greedy 1,154 cells, A* 1,776, Dijkstra 1,791).
 
 You can get these tables yourself with `PathfindingVisualiser --stats terrain 11`.
 
@@ -70,6 +71,7 @@ Or open `PathfindingVisualiser.sln` in Visual Studio and press F5.
 | One step | Step button or → |
 | New terrain / new maze | T / M |
 | Clear the search | C |
+| Pick a draw tool | 1 to 6 |
 
 Without opening the window:
 

@@ -9,21 +9,26 @@ namespace PathfindingVisualiser
 
     public static class Theme
     {
-        public static readonly Color Back = Color.FromArgb(153, 180, 209);   // ActiveCaption on Windows, same blue as the original form
-        public static readonly Color Wall = Color.Black;
-        public static readonly Color GridLine = Color.FromArgb(90, 0, 0, 0);
-        public static readonly Color Visited = Color.FromArgb(110, 70, 130, 220);
-        public static readonly Color Frontier = Color.FromArgb(150, 250, 215, 80);
-        public static readonly Color Path = Color.FromArgb(240, 120, 20);
-        public static readonly Color Start = Color.FromArgb(40, 160, 60);
-        public static readonly Color End = Color.FromArgb(210, 45, 45);
+        public static readonly Color Back = Color.FromArgb(17, 20, 28);
+        public static readonly Color Panel = Color.FromArgb(26, 30, 41);
+        public static readonly Color PanelLight = Color.FromArgb(37, 43, 57);
+        public static readonly Color Text = Color.FromArgb(225, 230, 240);
+        public static readonly Color Muted = Color.FromArgb(135, 145, 165);
+        public static readonly Color Accent = Color.FromArgb(255, 159, 67);
+        public static readonly Color Wall = Color.FromArgb(44, 48, 60);
+        public static readonly Color GridLine = Color.FromArgb(30, 0, 0, 0);
+        public static readonly Color Visited = Color.FromArgb(85, 60, 120, 235);
+        public static readonly Color Frontier = Color.FromArgb(190, 250, 205, 70);
+        public static readonly Color Path = Color.FromArgb(255, 159, 67);
+        public static readonly Color Start = Color.FromArgb(46, 204, 113);
+        public static readonly Color End = Color.FromArgb(231, 76, 60);
 
-        // flat ground is white like the original squares, hills get darker brown
+        // flat ground light green -> hills brown
         private static readonly Color[] costColours = BuildCostColours();
 
         private static Color[] BuildCostColours()
         {
-            Color low = Color.White, mid = Color.FromArgb(222, 196, 150), high = Color.FromArgb(130, 96, 66);
+            Color low = Color.FromArgb(206, 231, 190), mid = Color.FromArgb(158, 190, 120), high = Color.FromArgb(132, 96, 66);
             var c = new Color[Map.MaxCost + 1];
             for (int i = 1; i <= Map.MaxCost; i++)
             {
@@ -43,14 +48,13 @@ namespace PathfindingVisualiser
     }
 
     // Draws the map and the search, and handles drawing on the grid with the mouse.
-    // (The first version had a PictureBox per square, which was far too slow for big grids.)
+    // (This replaces the 400 PictureBoxes from the NEA version.)
     public class GridView : Control
     {
         public Map Map;
         public Search Search;
         public Tool Tool = Tool.Wall;
         public int BrushSize = 1;
-        public bool GridLines = true;
         public event EventHandler MapEdited;
 
         private bool dragging;
@@ -74,11 +78,11 @@ namespace PathfindingVisualiser
         protected override void OnPaint(PaintEventArgs e)
         {
             if (Map == null) return;
-            Render(e.Graphics, ClientSize, Map, Search, GridLines);
+            Render(e.Graphics, ClientSize, Map, Search);
         }
 
         // Static so the --export option can draw exactly the same picture without a window.
-        public static void Render(Graphics g, Size area, Map map, Search search, bool gridLines = true)
+        public static void Render(Graphics g, Size area, Map map, Search search)
         {
             g.Clear(Theme.Back);
             float size = Math.Min((area.Width - 16f) / map.Width, (area.Height - 16f) / map.Height);
@@ -104,7 +108,7 @@ namespace PathfindingVisualiser
                 }
             }
 
-            if (gridLines && size >= 6)
+            if (size >= 7)
             {
                 using (var pen = new Pen(Theme.GridLine))
                 {
@@ -121,10 +125,12 @@ namespace PathfindingVisualiser
                 var pts = new PointF[search.Path.Count];
                 for (int i = 0; i < pts.Length; i++)
                     pts[i] = new PointF(ox + (search.Path[i].X + 0.5f) * size, oy + (search.Path[i].Y + 0.5f) * size);
-                using (var pen = new Pen(Theme.Path, Math.Max(2f, size * 0.35f)))
+                using (var shadow = new Pen(Color.FromArgb(120, 0, 0, 0), Math.Max(3f, size * 0.55f)))
+                using (var pen = new Pen(Theme.Path, Math.Max(2f, size * 0.38f)))
                 {
-                    pen.LineJoin = LineJoin.Round;
-                    pen.StartCap = pen.EndCap = LineCap.Round;
+                    shadow.LineJoin = pen.LineJoin = LineJoin.Round;
+                    shadow.StartCap = shadow.EndCap = pen.StartCap = pen.EndCap = LineCap.Round;
+                    g.DrawLines(shadow, pts);
                     g.DrawLines(pen, pts);
                 }
             }
@@ -140,12 +146,17 @@ namespace PathfindingVisualiser
 
         private static void DrawEnd(Graphics g, Cell c, Color colour, float size, float ox, float oy)
         {
-            float pad = size * 0.1f;
+            float pad = size * 0.08f, d = Math.Max(6f, size * 1.4f);
+            float cx = ox + (c.X + 0.5f) * size, cy = oy + (c.Y + 0.5f) * size;
             using (var b = new SolidBrush(colour))
-                g.FillRectangle(b, ox + c.X * size + pad, oy + c.Y * size + pad, size - 2 * pad, size - 2 * pad);
+            using (var p = new Pen(Color.White, Math.Max(1.5f, size * 0.18f)))
+            {
+                g.FillEllipse(b, cx - d / 2, cy - d / 2, d, d);
+                g.DrawEllipse(p, cx - d / 2 + pad, cy - d / 2 + pad, d - 2 * pad, d - 2 * pad);
+            }
         }
 
-        // ---- mouse: click and drag to draw ----
+        // ---- mouse: same idea as the NEA draw/erase, but click-and-drag instead of hover ----
 
         private Cell CellAt(Point p)
         {
