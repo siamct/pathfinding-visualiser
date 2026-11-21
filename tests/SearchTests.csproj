@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Runs the search checks on any OS: only pulls in the grid, generators and searches, not the UI. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../PathfindingVisualiser/Grid/Map.cs" />
+    <Compile Include="../PathfindingVisualiser/Generation/Generators.cs" />
+    <Compile Include="../PathfindingVisualiser/Search/Search.cs" />
+  </ItemGroup>
+
+</Project>
