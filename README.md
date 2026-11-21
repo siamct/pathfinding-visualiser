@@ -1,120 +1,109 @@
 # Pathfinding Visualiser
 
-A Windows desktop app that generates terrain or mazes and animates six search algorithms finding a route across them. Written in C# with Windows Forms.
+A Windows Forms app (C#) that makes a map, either hilly terrain or a maze, and shows six search algorithms finding a way across it one cell at a time.
 
-Originally my A-Level Computer Science coursework at Rochdale Sixth Form College. This repository is a cleaned-up rewrite of that project on .NET 8, keeping the same design: a weighted grid, Perlin-noise terrain, a maze generator, and step-by-step animation of each algorithm so you can see how they differ.
+![The app comparing all six algorithms on a terrain map](docs/window.png)
 
-![Main window with A* running on Perlin-noise terrain](docs/window.png)
+## Where it came from
+
+This started as an older project of mine that only got as far as the grid: a 20 × 20 board of `PictureBox`es with Draw and Erase buttons that coloured squares as the mouse went over them, a black border, and two number boxes for the size. It also had a bug I didn't spot at the time: `for (int lines = 0; lines < xDraw; lines=+2)` sets `lines` to 2 forever instead of adding 2, so it never finished drawing.
+
+I came back to it and finished it. It still looks like the original (buttons and number boxes down the left, white squares and black walls on the blue form), but the grid is now drawn in one go instead of 400 separate controls, so it goes up to 151 × 101, and the searching, map generation and comparison are new.
 
 ## What it does
 
-- **Generates maps.** Perlin-noise terrain where height sets the cost of each cell (1 on the plains, up to 9 on the hills), or a perfect maze from a recursive-backtracker generator.
-- **Lets you edit the map.** Draw and erase walls, raise and lower the ground, move the start and end points, change the grid size and brush size.
-- **Animates the search.** Watch the visited set and frontier grow one cell at a time, pause, single-step, or run at full speed.
-- **Compares algorithms.** A*, Dijkstra, greedy best-first, breadth-first, bidirectional breadth-first and depth-first search, with cells visited, path length, path cost and time shown in the status bar.
-- **Exports images.** `File > Save image` saves the current view, and a command-line mode renders a result without opening a window.
+- **Makes maps.** Perlin-noise terrain where the height of each cell is how much it costs to walk over (1 on flat ground up to 9 on steep hills, with the highest points turned into rock you can't cross). Or a perfect maze from a recursive backtracker. Or an empty grid to draw on.
+- **Lets you edit them.** Draw and erase walls, raise and lower the ground, move the start and end. Brush size 1 to 5.
+- **Animates the search.** The shaded area is cells that have been checked and the orange line is the path. You can pause, step one cell at a time, or change the speed.
+- **Compares them.** "Run all six" runs every algorithm on the same map and shows cells visited and path cost side by side. Orange bars are the ones that found the cheapest path.
+- **Saves a picture** of the current map and search.
 
-## Algorithms
+## The algorithms
 
-| Algorithm | Uses terrain cost | Cheapest path guaranteed | Notes |
+| Algorithm | Cares about hills? | Always finds the cheapest path? | What it does |
 |---|---|---|---|
-| A* | Yes | Yes | Dijkstra plus an octile-distance heuristic, so it expands far fewer cells |
-| Dijkstra | Yes | Yes | Expands cells in order of cost so far |
-| Greedy best-first | No | No | Heads straight for the goal; fast but easily fooled by hills and walls |
-| Breadth-first (BFS) | No | Fewest steps only | Treats every step as cost 1, so it walks straight over hills |
-| Bidirectional BFS | No | Fewest steps only | Two BFS fronts, one from each end, that stop when they meet |
-| Depth-first (DFS) | No | No | Included for comparison; finds long, winding paths |
+| A* | Yes | Yes | Dijkstra plus a guess of the distance left, so it heads towards the end |
+| Dijkstra | Yes | Yes | Always checks the cheapest cell so far next, spreading out evenly |
+| Greedy best-first | No | No | Only uses the guess, so it's very fast but goes straight over hills |
+| Breadth-first | No | Fewest steps, not cheapest | Every step counts as 1 |
+| Bidirectional BFS | No | Fewest steps, not cheapest | Two breadth-first searches, one from each end, that stop when they meet |
+| Depth-first | No | No | Goes as far as it can before backtracking. Here to show what *not* to do |
 
-Diagonal moves are optional, cost 1.41x, and are not allowed to cut the corner of a wall. The A* heuristic is octile distance times the minimum cell cost, so it never overestimates and A* stays optimal.
+Diagonal moves can be turned off. When they're on, a diagonal step costs 1.41 times as much and can't squeeze between two walls that touch at a corner. The guess A* uses is the octile distance (the shortest possible route on an 8-way grid, ignoring walls and hills). Flat ground costs 1, so that guess is never more than the real cost, which is what keeps A* finding the cheapest path.
 
-## Software
+## Results
 
-- C# 12 on .NET 8 (Windows Forms), no external packages
-- Builds with the .NET 8 SDK from the command line or in Visual Studio 2022
+All six on the default 41 × 27 terrain (seed 11, diagonals on). "Cells visited" is how many cells each one had to check. "Path cost" adds up the hill cost of every cell on the path.
 
-## How to run
+| Algorithm | Cells visited | Path steps | Path cost |
+|---|---|---|---|
+| A* | 255 | 40 | 54.2 |
+| Dijkstra | 657 | 40 | 54.2 |
+| Greedy best-first | 39 | 38 | 73.0 |
+| Breadth-first | 856 | 38 | 73.0 |
+| Bidirectional BFS | 789 | 38 | 73.0 |
+| Depth-first | 776 | 741 | 3,056.1 |
 
-Install the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0), then:
+- A* and Dijkstra find the same cheapest route, but A* only checks 39 % as many cells.
+- Greedy is by far the quickest (39 cells), but like breadth-first it goes straight over the hills, so its path costs 35 % more even though it's 2 steps shorter.
+- Depth-first wanders round almost the whole map before it reaches the end.
 
-```bash
-git clone https://github.com/siamct/pathfinding-visualiser.git
-cd pathfinding-visualiser
+In a maze every open cell costs the same and there's only one route, so they all find the same path. The difference is how much of the maze they explore first (seed 7: greedy 149 cells, A* 275, Dijkstra 305).
+
+You can get these tables yourself with `PathfindingVisualiser --stats terrain 11`.
+
+## Running it
+
+Needs Windows and the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0).
+
+```
 dotnet run --project PathfindingVisualiser -c Release
 ```
 
 Or open `PathfindingVisualiser.sln` in Visual Studio and press F5.
 
-Controls:
-
-| Action | How |
+| Do this | How |
 |---|---|
-| Apply the selected draw tool | Left-click or drag on the grid |
-| Erase walls | Right-click or drag |
-| Run / pause | `Run` button or `Space` |
-| Single step | `Step` button or `Right arrow` |
-| New terrain / new maze | `T` / `M` |
-| Clear search | `C` |
-| Select a draw tool | `1` to `6` |
+| Use the selected draw tool | Left-click or drag on the grid |
+| Erase | Right-click or drag |
+| Run / pause | Run button or Space |
+| One step | Step button or → |
+| New terrain / new maze | T / M |
+| Clear the search | C |
 
-To render a result to a PNG without opening a window:
+Without opening the window:
 
-```bash
-PathfindingVisualiser.exe --export out.png astar terrain 2024
-PathfindingVisualiser.exe --export out.png bds maze 7
+```
+PathfindingVisualiser --export out.png astar terrain 11     # astar, dijkstra, greedy, bfs, bds, dfs / terrain, maze / seed
+PathfindingVisualiser --stats maze 7
 ```
 
-The arguments are the output file, the algorithm (`astar`, `dijkstra`, `greedy`, `bfs`, `bds`, `dfs`), the map type (`terrain`, `maze` or `window` for a screenshot of the whole app) and a seed.
+## Tests
 
-## Results
+`tests/` checks the searches on 100 random maps (terrain and maze, diagonals on and off). It checks that:
 
-All six algorithms on the same 81 x 51 terrain (seed 2024) with diagonal moves on. Visited counts are cells expanded; cost is the sum of the terrain costs along the path.
+- every path is valid,
+- A* always matches Dijkstra's cost while checking no more cells,
+- nothing beats Dijkstra on cost,
+- nothing beats breadth-first on number of steps,
+- a walled-off end gives "no path",
+- diagonals can't cut corners.
 
-| Algorithm | Cells visited | Path steps | Path cost |
-|---|---|---|---|
-| A* | 1,720 | 67 | 104.6 |
-| Dijkstra | 3,681 | 67 | 104.6 |
-| Greedy best-first | 65 | 64 | 178.5 |
-| Breadth-first | 3,713 | 64 | 155.2 |
-| Bidirectional BFS | 3,361 | 64 | 152.3 |
-| Depth-first | 2,495 | 94 | 274.0 |
+It doesn't use the UI, so it runs on any OS:
 
-A* and Dijkstra find the same cheapest route, but A* expands less than half as many cells. The unweighted searches find paths with fewer steps that cost 50 to 160 percent more because they go straight over the hills.
+```
+dotnet run --project tests
+```
 
-| A* | Breadth-first |
-|---|---|
-| ![A* on terrain](docs/terrain_astar.png) | ![BFS on terrain](docs/terrain_bfs.png) |
-
-| Dijkstra | Greedy best-first |
-|---|---|
-| ![Dijkstra on terrain](docs/terrain_dijkstra.png) | ![Greedy on terrain](docs/terrain_greedy.png) |
-
-On a maze every open cell costs the same, so the difference is only in how many cells each algorithm has to look at before it finds the exit.
-
-| A* on a maze | Bidirectional BFS on a maze |
-|---|---|
-| ![A* on maze](docs/maze_astar.png) | ![Bidirectional BFS on maze](docs/maze_bds.png) |
-
-## Project structure
+## Files
 
 ```
 PathfindingVisualiser/
-  Grid/          Cell and Map: the weighted grid and neighbour lookup
-  Generation/    PerlinNoise, TerrainGenerator, MazeGenerator
-  Search/        One class per algorithm, all written as step iterators
-  UI/            MainForm (controls), GridPanel (drawing and mouse), HeadlessExport
-docs/            Images used in this README
+  Grid/Map.cs                 the grid: cells, walls, hill costs, neighbours
+  Generation/Generators.cs    Perlin noise, terrain and maze generators
+  Search/Search.cs            all six algorithms (as step-by-step iterators) and a min-heap
+  UI/GridView.cs              draws the map and the search, mouse drawing
+  UI/MainForm.cs              the window, sidebar and comparison chart
+  Program.cs                  starts the app, plus the --export and --stats options
+tests/SearchTests.cs
 ```
-
-Each algorithm is an iterator that yields a cell every time it expands one. The form pulls a few cells per timer tick to animate, and the exporter pulls them all in a loop. The same code produces both.
-
-## What I learned
-
-- **Why A* needs an admissible heuristic.** Scaling the distance estimate by the average terrain cost makes A* faster, but it can then return a worse path than Dijkstra. Scaling by the minimum cost keeps it optimal, at the price of expanding more cells on hilly maps.
-- **Priority queues need stale-entry handling.** Re-inserting a cell with a lower cost and skipping entries that are already closed is simpler and faster than a decrease-key operation.
-- **Corner cutting matters.** Allowing diagonal moves between two walls looked wrong immediately. Checking that both orthogonal neighbours are open is a one-line fix that most tutorials skip.
-- **Separating the algorithm from the animation.** Writing each search as an iterator meant the UI, the single-step button and the headless exporter all share one implementation, and a bug in the search only has to be fixed in one place.
-- **WinForms layout.** AutoSize containers nested inside each other can collapse to nothing. Fixed widths with content-sized heights were more predictable.
-
-## Licence
-
-MIT. See [LICENSE](LICENSE).
