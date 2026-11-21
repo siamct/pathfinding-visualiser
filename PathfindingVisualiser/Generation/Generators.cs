@@ -70,9 +70,10 @@ namespace PathfindingVisualiser
     {
         // Height from the noise becomes the cost of the cell (1 = flat, 9 = steep).
         // The very top is turned into rock (walls) so there's something to go round.
-        public static void Generate(Map map, int seed, double scale = 0.06, double flatLevel = -0.05, double rockLevel = 0.3)
+        public static void Generate(Map map, int seed, double flatLevel = -0.05, double rockLevel = 0.3)
         {
             var noise = new PerlinNoise(seed);
+            double scale = 4.9 / map.Width;      // same number of hills whatever the grid size
             map.Clear();
             foreach (Cell c in map.AllCells())
             {
