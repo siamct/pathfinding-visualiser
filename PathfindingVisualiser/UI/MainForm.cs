@@ -99,8 +99,8 @@ namespace PathfindingVisualiser
             brushBox.ValueChanged += (s, e) => view.BrushSize = (int)brushBox.Value;
 
             Heading(side, "Grid", ref y);
-            columnsBox = Number(side, "Width", 15, 151, 81, ref y);
-            rowsBox = Number(side, "Height", 11, 101, 51, ref y);
+            columnsBox = Number(side, "Width", 15, 151, 41, ref y);
+            rowsBox = Number(side, "Height", 11, 101, 27, ref y);
             seedBox = Number(side, "Seed", 0, 99999, 11, ref y);
             Btn(side, "Terrain", 12, y, 75, (s, e) => NewMap("terrain", (int)seedBox.Value));
             Btn(side, "Maze", 90, y, 75, (s, e) => NewMap("maze", (int)seedBox.Value));
