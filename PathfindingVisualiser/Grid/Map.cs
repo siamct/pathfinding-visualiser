@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace PathfindingVisualiser
 {
-    // In the NEA version every square was its own PictureBox (the Block class),
+    // The first version made every square its own PictureBox (the Block class),
     // which got really slow past about 20x20. Now the grid is just data and
     // GridView draws it all in one go.
     public class Cell
@@ -75,7 +75,7 @@ namespace PathfindingVisualiser
                 yield return c;
         }
 
-        // Same idea as the black border in the NEA grid, so paths can't leave the map.
+        // Black border round the edge, so paths can't leave the map.
         public void AddBorder()
         {
             for (int x = 0; x < Width; x++)
